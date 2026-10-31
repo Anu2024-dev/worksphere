@@ -4,6 +4,13 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.NODE_ENV === 'production' && process.env.FORCE_SEED !== 'true') {
+    console.error('⛔ [CRITICAL SAFETY CHECK] Seeding aborted: NODE_ENV is set to "production".');
+    console.error('The seed script deletes existing data and injects mock demo accounts.');
+    console.error('To force seeding on staging or demo environments, explicitly set FORCE_SEED=true.');
+    process.exit(1);
+  }
+
   console.log('Seeding WorkSphere database...');
 
   // 1. Clean existing records in reverse dependency order

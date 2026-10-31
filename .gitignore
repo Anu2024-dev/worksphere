@@ -8,6 +8,9 @@ build/
 Thumbs.db
 *.log
 *.tsbuildinfo
+coverage/
+vite.config.js
+vite.config.d.ts
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

@@ -22,15 +22,30 @@ const app: Application = express();
 
 // Security and utility middleware
 app.use(helmet());
+
+const configuredOrigins = config.corsOrigin
+  ? config.corsOrigin.split(',').map((o) => o.trim()).filter(Boolean)
+  : ['http://localhost:5173'];
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, or Postman) or matching frontend
-      if (!origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Dev-friendly permissive for local setups
+      // Allow requests with no origin (e.g., mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      // In non-production environments, allow local developer origins
+      if (config.nodeEnv !== 'production') {
+        if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+          return callback(null, true);
+        }
       }
+
+      // Check against configured CORS origins
+      if (configuredOrigins.includes(origin) || configuredOrigins.includes('*')) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked request from unauthorized origin: ${origin}`));
     },
     credentials: true,
   })

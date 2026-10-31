@@ -35,7 +35,11 @@ export const LoginPage: React.FC = () => {
         }
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please verify your credentials.');
+      if (!err.response) {
+        setError('Unable to connect to WorkSphere server. Please verify the backend API is running.');
+      } else {
+        setError(err.response?.data?.message || 'Login failed. Please verify your credentials.');
+      }
     } finally {
       setIsLoading(false);
     }

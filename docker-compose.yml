@@ -10,7 +10,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespassword}
       POSTGRES_DB: ${POSTGRES_DB:-worksphere}
     ports:
-      - '5432:5432'
+      # In production, bind strictly to localhost to prevent public database exposure
+      - '${POSTGRES_BIND_IP:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -37,6 +38,12 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:80}
     ports:
       - '5000:5000'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:5000/api/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   frontend:
     build:
