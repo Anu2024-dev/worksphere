@@ -20,9 +20,16 @@ import { useAuth } from '../../context/AuthContext';
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  mobileOpen: boolean;
+  onMobileClose: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  collapsed,
+  onToggle,
+  mobileOpen,
+  onMobileClose,
+}) => {
   const { user, logout, isAdmin, isAgent, isEmployee } = useAuth();
 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
@@ -30,14 +37,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
       isActive
         ? 'bg-indigo-50 text-indigo-700 shadow-sm'
         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
-    } ${collapsed ? 'justify-center px-2' : ''}`;
+    } ${collapsed ? 'md:justify-center md:px-2' : ''}`;
 
   return (
-    <aside
-      className={`fixed top-0 bottom-0 left-0 z-30 flex flex-col bg-white border-r border-slate-200/80 transition-all duration-300 ${
-        collapsed ? 'w-16' : 'w-64'
-      }`}
-    >
+    <>
+      {/* Mobile Backdrop */}
+      {mobileOpen && (
+        <div
+          onClick={onMobileClose}
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 md:hidden"
+        />
+      )}
+
+      <aside
+        className={`fixed top-0 bottom-0 left-0 z-40 flex flex-col bg-white border-r border-slate-200/80 transition-all duration-300 ${
+          mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'
+        } ${collapsed ? 'md:w-16' : 'md:w-64'}`}
+      >
       {/* Brand Header */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100">
         {!collapsed && (
@@ -199,6 +215,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
           )}
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 };

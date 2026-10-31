@@ -3,11 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Bell,
   Search,
-  Check,
-  ExternalLink,
   User as UserIcon,
   LogOut,
   ChevronDown,
+  Menu,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../api/client';
@@ -15,9 +14,10 @@ import { Notification } from '../../types';
 
 interface HeaderProps {
   onOpenSearch: () => void;
+  onToggleMobileSidebar?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenSearch }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onToggleMobileSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -77,6 +77,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch }) => {
     <header className="h-16 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between sticky top-0 z-20">
       {/* Title & Breadcrumb */}
       <div className="flex items-center gap-3">
+        <button
+          onClick={onToggleMobileSidebar}
+          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 md:hidden transition-colors"
+          title="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
         <h1 className="text-lg font-semibold text-slate-900 capitalize tracking-tight">
           {currentTitle}
         </h1>

@@ -143,8 +143,8 @@ export const UserManagementPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-slate-200">
-        <nav className="flex space-x-6 text-xs font-semibold">
+      <div className="border-b border-slate-200 overflow-x-auto">
+        <nav className="flex space-x-6 text-xs font-semibold min-w-max pb-0.5">
           <button
             onClick={() => setActiveTab('users')}
             className={`pb-3 border-b-2 flex items-center gap-1.5 transition-colors ${

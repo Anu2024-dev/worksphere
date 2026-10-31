@@ -19,6 +19,7 @@ import {
   Cell,
   PieChart,
   Pie,
+  Legend,
 } from 'recharts';
 import apiClient from '../../api/client';
 import { StatCard, Card, CardHeader, CardContent } from '../../components/common/Card';
@@ -192,6 +193,7 @@ export const AdminDashboard: React.FC = () => {
                     return <Cell key={`pie-${index}`} fill={color} />;
                   })}
                 </Pie>
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#ffffff',
