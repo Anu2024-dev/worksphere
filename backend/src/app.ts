@@ -21,37 +21,64 @@ import auditRoutes from './routes/audit.routes.js';
 const app: Application = express();
 
 // Security and utility middleware
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
 const configuredOrigins = config.corsOrigin
   ? config.corsOrigin.split(',').map((o) => o.trim().replace(/\/+$/, '')).filter(Boolean)
   : ['http://localhost:5173'];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (e.g., mobile apps, curl, server-to-server)
-      if (!origin) return callback(null, true);
+const isOriginAllowed = (origin: string): boolean => {
+  const normalizedOrigin = origin.replace(/\/+$/, '');
 
-      const normalizedOrigin = origin.replace(/\/+$/, '');
+  // 1. Allow wildcard if specified
+  if (configuredOrigins.includes('*')) return true;
 
-      // In non-production environments, allow local developer origins
-      if (config.nodeEnv !== 'production') {
-        if (normalizedOrigin.startsWith('http://localhost') || normalizedOrigin.startsWith('http://127.0.0.1')) {
-          return callback(null, true);
-        }
-      }
+  // 2. Allow explicitly configured origins
+  if (configuredOrigins.includes(normalizedOrigin)) return true;
 
-      // Check against configured CORS origins
-      if (configuredOrigins.includes(normalizedOrigin) || configuredOrigins.includes('*')) {
-        return callback(null, true);
-      }
+  // 3. Allow local development origins
+  if (normalizedOrigin.startsWith('http://localhost') || normalizedOrigin.startsWith('http://127.0.0.1')) {
+    return true;
+  }
 
-      return callback(new Error(`CORS blocked request from unauthorized origin: ${origin}`));
-    },
-    credentials: true,
-  })
-);
+  // 4. Automatically allow Vercel production and preview domains (*.vercel.app)
+  if (/\.vercel\.app$/.test(normalizedOrigin) || normalizedOrigin.endsWith('.vercel.app')) {
+    return true;
+  }
+
+  // 5. Automatically allow Render domains (*.onrender.com)
+  if (/\.onrender\.com$/.test(normalizedOrigin) || normalizedOrigin.endsWith('.onrender.com')) {
+    return true;
+  }
+
+  return false;
+};
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (mobile, server-to-server, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    if (isOriginAllowed(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(null, false);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400,
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 

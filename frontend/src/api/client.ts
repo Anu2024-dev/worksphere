@@ -1,11 +1,37 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+/**
+ * Resolves and normalizes the backend API base URL across dev and production.
+ * Handles trailing slashes, missing '/api' suffixes, and hosting platform misconfigurations.
+ */
+export function resolveApiBaseUrl(): string {
+  const envUrl = (import.meta.env.VITE_API_URL || '').trim();
+
+  if (envUrl) {
+    // Strip trailing slashes
+    const cleanUrl = envUrl.replace(/\/+$/, '');
+    // If the URL does not end with /api, append it automatically
+    return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+  }
+
+  // In local development mode, fallback to localhost:5000/api
+  if (import.meta.env.DEV) {
+    return 'http://localhost:5000/api';
+  }
+
+  // In production if VITE_API_URL is missing, default to relative /api
+  // This allows reverse-proxies / rewrite rules to handle API calls
+  return '/api';
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 45000, // 45 seconds timeout to accommodate Render free-tier cold starts
   headers: {
     'Content-Type': 'application/json',
+    Accept: 'application/json',
   },
 });
 
