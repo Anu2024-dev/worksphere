@@ -24,7 +24,7 @@ const app: Application = express();
 app.use(helmet());
 
 const configuredOrigins = config.corsOrigin
-  ? config.corsOrigin.split(',').map((o) => o.trim()).filter(Boolean)
+  ? config.corsOrigin.split(',').map((o) => o.trim().replace(/\/+$/, '')).filter(Boolean)
   : ['http://localhost:5173'];
 
 app.use(
@@ -33,15 +33,17 @@ app.use(
       // Allow requests with no origin (e.g., mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true);
 
+      const normalizedOrigin = origin.replace(/\/+$/, '');
+
       // In non-production environments, allow local developer origins
       if (config.nodeEnv !== 'production') {
-        if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+        if (normalizedOrigin.startsWith('http://localhost') || normalizedOrigin.startsWith('http://127.0.0.1')) {
           return callback(null, true);
         }
       }
 
       // Check against configured CORS origins
-      if (configuredOrigins.includes(origin) || configuredOrigins.includes('*')) {
+      if (configuredOrigins.includes(normalizedOrigin) || configuredOrigins.includes('*')) {
         return callback(null, true);
       }
 
@@ -57,8 +59,8 @@ if (config.nodeEnv !== 'test') {
   app.use(morgan('dev'));
 }
 
-// Health check endpoint
-app.get('/api/health', (req: Request, res: Response) => {
+// Health check and root probe endpoints for Render / container health checks
+app.get(['/', '/health', '/api/health'], (req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
     service: 'WorkSphere Backend API',

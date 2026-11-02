@@ -11,9 +11,9 @@ async function startServer() {
     await prisma.$queryRaw`SELECT 1`;
     console.log('PostgreSQL database connected successfully via Prisma.');
 
-    const server = app.listen(PORT, () => {
-      console.log(`WorkSphere API Server running at http://localhost:${PORT}`);
-      console.log(`Health check: http://localhost:${PORT}/api/health`);
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`WorkSphere API Server running on port ${PORT} (0.0.0.0:${PORT})`);
+      console.log(`Health check: http://0.0.0.0:${PORT}/api/health`);
     });
 
     server.on('error', async (error: NodeJS.ErrnoException) => {
